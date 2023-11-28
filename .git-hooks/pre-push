@@ -16,6 +16,6 @@ echo "Running pre-push hook"
 if [ "$STAGED_VERSION" != "$MAIN_BRANCH_VERSION" ]; then
     echo "Package.json version was changed from $MAIN_BRANCH_VERSION to $STAGED_VERSION. Proceeding with the push..."
 else
-    echo -e "${RED}Error: Package.json version was not changed from the main branch. Pushing on a similar version is not allowed.${ENDCOLOR}"
+    echo -e "${RED}Error: Package.json version is the same as version on main branch. Pushing on a similar version is not allowed.${ENDCOLOR}"
     exit 1
 fi
