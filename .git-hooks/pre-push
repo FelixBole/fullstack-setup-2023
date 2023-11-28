@@ -18,13 +18,22 @@ version_compare_and_check() {
     local local_version="$1"
     local remote_version="$2"
     local result
-    result=$(semver compare "$local_version" "$remote_version")
-    
-    # Check if local version is not the same as remote version and is not lower
-    if [ "$result" != "$local_version" ]; then
-        return 0
-    else
+    result=$(semver compare "$local_version" "$remote_version" | tr -d '\n')
+
+    if [ "$local_version" == "$remote_version" ]; then
+        echo "Local version is the same as remote version"
         return 1
+    else
+        return 0
+    fi
+
+    
+    # Check if the output of semver is a reordering of local and remote versions
+    # in an order that would prove that local version is higher than remote version
+    if [ "$result" != "$remote_version$local_version" ]; then
+        return 1
+    else
+        return 0
     fi
 }
 
