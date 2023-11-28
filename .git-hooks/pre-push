@@ -4,18 +4,19 @@ RED="\e[31m"
 GREEN="\e[32m"
 ENDCOLOR="\e[0m"
 
-# Get the current version in the main branch
-MAIN_BRANCH_VERSION=$(git show main:package.json | grep '"version":' | cut -d '"' -f 4)
+# Get the local version in the staged package.json file
+LOCAL_VERSION=$(git show :package.json | grep '"version":' | cut -d '"' -f 4)
 
-# Get the version in the staged package.json file
-STAGED_VERSION=$(git show :package.json | grep '"version":' | cut -d '"' -f 4)
+# Get the remote version in the package.json file of the branch you're pushing to
+REMOTE_BRANCH=$(git rev-parse --abbrev-ref --symbolic-full-name @{u})
+REMOTE_VERSION=$(git show "$REMOTE_BRANCH:package.json" | grep '"version":' | cut -d '"' -f 4)
 
 echo "Running pre-push hook"
 
-# Check if the package.json version in the staged changes is different from the main branch
-if [ "$STAGED_VERSION" != "$MAIN_BRANCH_VERSION" ]; then
-    echo "Package.json version was changed from $MAIN_BRANCH_VERSION to $STAGED_VERSION. Proceeding with the push..."
+# Check if the local version is higher than the remote version
+if [[ "$(printf '%s\n' "$LOCAL_VERSION" "$REMOTE_VERSION" | sort -V | head -n 1)" == "$LOCAL_VERSION" ]]; then
+    echo "Local package.json version ($LOCAL_VERSION) is higher than the remote version ($REMOTE_VERSION). Proceeding with the push..."
 else
-    echo -e "${RED}Error: Package.json version is the same as version on main branch. Pushing on a similar version is not allowed.${ENDCOLOR}"
+    echo -e "${RED}Error: Local package.json version ($LOCAL_VERSION) is not higher than the remote version ($REMOTE_VERSION). Pushing on a lower or equal version is not allowed.${ENDCOLOR}"
     exit 1
 fi
