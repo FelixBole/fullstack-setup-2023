@@ -13,19 +13,19 @@ REMOTE_VERSION=$(git show "origin/$REMOTE_BRANCH:package.json" | grep '"version"
 
 echo "Running pre-push hook"
 
-# Function to compare two versions using semver
+# Function to compare two versions using npm version
 version_compare() {
+    local local_version="$1"
+    local remote_version="$2"
     local result
-    result=$(npm --no-git-tag-version --allow-same-version version "$1" "$2")
-    if [ "$result" = "Invalid version" ]; then
-        echo "Invalid versions: $1 or $2"
-        exit 1
+    result=$(npm --no-git-tag-version --no-commit-hooks --json version "$local_version" "$remote_version")
+    if [[ "$result" =~ "\"diff\":\\{\"versions\":"(.+) ]]; then
+        diff=$(echo "${BASH_REMATCH[1]}" | tr -d '[:space:]')
+        if [ "$diff" == "null" ]; then
+            return 0
+        fi
     fi
-    if [ "$result" = "$1" ]; then
-        return 0
-    else
-        return 1
-    fi
+    return 1
 }
 
 # Check if the local version is higher than the remote version
