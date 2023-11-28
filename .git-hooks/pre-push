@@ -1,0 +1,21 @@
+#!/bin/bash
+
+RED="\e[31m"
+GREEN="\e[32m"
+ENDCOLOR="\e[0m"
+
+# Get the current version in the main branch
+MAIN_BRANCH_VERSION=$(git show main:package.json | grep '"version":' | cut -d '"' -f 4)
+
+# Get the version in the staged package.json file
+STAGED_VERSION=$(git show :package.json | grep '"version":' | cut -d '"' -f 4)
+
+echo "Running pre-push hook"
+
+# Check if the package.json version in the staged changes is different from the main branch
+if [ "$STAGED_VERSION" != "$MAIN_BRANCH_VERSION" ]; then
+    echo "Package.json version was changed from $MAIN_BRANCH_VERSION to $STAGED_VERSION. Proceeding with the push..."
+else
+    echo -e "${RED}Error: Package.json version was not changed from the main branch. Pushing on a similar version is not allowed.${ENDCOLOR}"
+    exit 1
+fi
