@@ -17,7 +17,7 @@ echo "Running pre-push hook"
 version_compare() {
     local local_version="$1"
     local remote_version="$2"
-    if semver -r "$local_version" -r "$remote_version"; then
+    if [ "$(semver compare "$local_version" "$remote_version")" -le 0 ]; then
         return 0
     else
         return 1

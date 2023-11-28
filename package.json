@@ -13,7 +13,7 @@
         "prettier": "prettier --write ./src/",
         "lint": "eslint src/**/*.{ts,js}",
         "lint:fix": "eslint src/**/*.{ts,js} --fix",
-        "postinstall": "git config core.hooksPath ./.git-hooks",
+        "postinstall": "git config core.hooksPath ./.git-hooks && npm i -g semver",
         "seed": "ts-node src/seeds/index.ts",
         "setup:model": "node scripts/setupModel.mjs",
         "create:router": "node scripts/createResource.mjs"
