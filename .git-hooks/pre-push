@@ -8,13 +8,30 @@ ENDCOLOR="\e[0m"
 LOCAL_VERSION=$(git show :package.json | grep '"version":' | cut -d '"' -f 4)
 
 # Get the remote version in the package.json file of the branch you're pushing to
-REMOTE_BRANCH=$(git rev-parse --abbrev-ref --symbolic-full-name @{u})
-REMOTE_VERSION=$(git show "$REMOTE_BRANCH:package.json" | grep '"version":' | cut -d '"' -f 4)
+REMOTE_BRANCH=$(git symbolic-ref -q --short HEAD)
+REMOTE_VERSION=$(git show "origin/$REMOTE_BRANCH:package.json" | grep '"version":' | cut -d '"' -f 4)
 
 echo "Running pre-push hook"
 
+# Function to compare two versions
+version_compare() {
+    local v1 v2
+    v1=(${1//./ })
+    v2=(${2//./ })
+    
+    for ((i = 0; i < ${#v1[@]}; i++)); do
+        if [[ ${v1[i]} -lt ${v2[i]} ]]; then
+            return 1
+        elif [[ ${v1[i]} -gt ${v2[i]} ]]; then
+            return 0
+        fi
+    done
+    return 0
+}
+
 # Check if the local version is higher than the remote version
-if [[ "$(printf '%s\n' "$LOCAL_VERSION" "$REMOTE_VERSION" | sort -V | head -n 1)" == "$LOCAL_VERSION" ]]; then
+version_compare "$LOCAL_VERSION" "$REMOTE_VERSION"
+if [ $? -eq 0 ]; then
     echo "Local package.json version ($LOCAL_VERSION) is higher than the remote version ($REMOTE_VERSION). Proceeding with the push..."
 else
     echo -e "${RED}Error: Local package.json version ($LOCAL_VERSION) is not higher than the remote version ($REMOTE_VERSION). Pushing on a lower or equal version is not allowed.${ENDCOLOR}"
